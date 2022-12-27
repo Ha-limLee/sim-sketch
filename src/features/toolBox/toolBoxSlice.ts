@@ -6,13 +6,15 @@ export const Shapes = ["line", "curve", "circle", "rect", "poly"] as const;
 
 export type ShapeType = typeof Shapes[number];
 
-export interface ShapeState {
+export interface ToolBoxState {
     selectedShape: ShapeType;
+    strokeWidth: number;
 }
 
-const initialState: ShapeState = {
+const initialState: ToolBoxState = {
     selectedShape: "line",
-}
+    strokeWidth: 10,
+};
 
 export const toolBoxSlice = createSlice({
     name: "toolBox",
@@ -21,10 +23,13 @@ export const toolBoxSlice = createSlice({
         setShapeType: (state, { payload }: PayloadAction<ShapeType>) => {
             state.selectedShape = payload;
         },
+        setStrokeWidth: (state, { payload }: PayloadAction<number>) => {
+            state.strokeWidth = payload;
+        },
     }
 });
 
-export const { setShapeType } = toolBoxSlice.actions;
+export const { setShapeType, setStrokeWidth } = toolBoxSlice.actions;
 
 export const selectToolBox = (state: RootState) => state.toolBox;
 
