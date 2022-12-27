@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage, Layer, Line } from 'react-konva';
+import { Stage, Layer, Line, Circle } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { useAppSelector } from '../../app/hooks';
 import { selectToolBox } from '../toolBox/toolBoxSlice';
@@ -7,7 +7,7 @@ import type { ShapeType } from '../toolBox/toolBoxSlice';
 
 type NodeProp = {
     id: string,
-    points?: number[],
+    points: number[],
     strokeWidth: number,
 };
 
@@ -27,7 +27,7 @@ type EventMapper = {
 const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element} = {
     "line": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" strokeWidth={props.strokeWidth}></Line>,
     "curve": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" globalCompositeOperation="source-over" lineCap='round' lineJoin='round' strokeWidth={props.strokeWidth} tension={0.5}></Line>,
-    "circle": (props) => <></>,
+    "circle": ({ id, points, strokeWidth }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke="black" radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
     "rect": (props) => <></>,
     "poly": (props) => <></>,
 };
@@ -86,9 +86,29 @@ export const DrawBoard = () => {
             },
         },
         "circle": {
-            handleMouseDown: (e) => {},
-            handleMouseMove: (e) => {},
-            handleMouseUp: (e) => {},
+            handleMouseDown: (e) => {
+                const start = [e.evt.offsetX, e.evt.offsetY];
+                setPoints([...start, ...start, 0, 0]);
+                setIsDrawing(true);
+            },
+            handleMouseMove: (e) => {
+                if (!isDrawing) return; 
+                const { offsetX, offsetY } = e.evt;
+                const center = [points[0] + offsetX, points[1] + offsetY].map(x => x / 2);
+                const radius = [center[0] - offsetX, center[1] - offsetY].map(x => Math.abs(x)).reduce((prev, curr) => Math.min(prev, curr));
+                setPoints([...points.slice(0, 2), ...center, radius]);
+            },
+            handleMouseUp: (e) => {
+                const newNodeProp: NodeProp = {
+                    id: id.toString(),
+                    points: [...points],
+                    strokeWidth,
+                };
+                id++;
+                setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                setIsDrawing(false);
+                setPoints([]);
+            },
         },
         "rect": {
             handleMouseDown: (e) => {},
