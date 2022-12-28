@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage, Layer, Line, Circle } from 'react-konva';
+import { Stage, Layer, Line, Circle, Rect } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { useAppSelector } from '../../app/hooks';
 import { selectToolBox } from '../toolBox/toolBoxSlice';
@@ -29,7 +29,7 @@ const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element} = {
     "line": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" strokeWidth={props.strokeWidth}></Line>,
     "curve": ({ id, points, strokeWidth }) => <QuadCurve key={id} id={id} points={points ? [...points] : []} stroke="black" strokeWidth={strokeWidth} />,
     "circle": ({ id, points, strokeWidth }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke="black" radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
-    "rect": (props) => <></>,
+    "rect": ({ id, points, strokeWidth }) => <Rect key={id} id={id} x={points[0]} y={points[1]} width={points[2]} height={points[3]} stroke="black" strokeWidth={strokeWidth} ></Rect>,
     "poly": (props) => <></>,
 };
 
@@ -112,9 +112,30 @@ export const DrawBoard = () => {
             },
         },
         "rect": {
-            handleMouseDown: (e) => {},
-            handleMouseMove: (e) => {},
-            handleMouseUp: (e) => {},
+            handleMouseDown: (e) => {
+                const start = [e.evt.offsetX, e.evt.offsetY];
+                setPoints([...start, 0, 0]);
+                setIsDrawing(true);
+            },
+            handleMouseMove: (e) => {
+                if (!isDrawing) return; 
+                const { offsetX, offsetY } = e.evt;
+                const width = offsetX - points[0];
+                const height = offsetY - points[1];
+
+                setPoints([...points.slice(0, 2), width, height]);
+            },
+            handleMouseUp: (e) => {
+                const newNodeProp: NodeProp = {
+                    id: id.toString(),
+                    points: [...points],
+                    strokeWidth,
+                };
+                id++;
+                setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                setIsDrawing(false);
+                setPoints([]);
+            },
         },
         "poly": {
             handleMouseDown: (e) => {},
