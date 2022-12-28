@@ -4,6 +4,7 @@ import type { KonvaEventObject } from 'konva/lib/Node';
 import { useAppSelector } from '../../app/hooks';
 import { selectToolBox } from '../toolBox/toolBoxSlice';
 import type { ShapeType } from '../toolBox/toolBoxSlice';
+import { QuadCurve } from '../quadCurve/QuadCurve';
 
 type NodeProp = {
     id: string,
@@ -26,7 +27,7 @@ type EventMapper = {
 
 const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element} = {
     "line": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" strokeWidth={props.strokeWidth}></Line>,
-    "curve": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" globalCompositeOperation="source-over" lineCap='round' lineJoin='round' strokeWidth={props.strokeWidth} tension={0.5}></Line>,
+    "curve": ({ id, points, strokeWidth }) => <QuadCurve key={id} id={id} points={points ? [...points] : []} stroke="black" strokeWidth={strokeWidth} />,
     "circle": ({ id, points, strokeWidth }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke="black" radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
     "rect": (props) => <></>,
     "poly": (props) => <></>,
@@ -71,7 +72,7 @@ export const DrawBoard = () => {
             },
             handleMouseMove: (e) => {
                 if (!isDrawing) return;
-                setPoints([...points, e.evt.offsetX, e.evt.offsetY]);
+                setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
             },
             handleMouseUp: (e) => {
                 const newNodeProp: NodeProp = {
