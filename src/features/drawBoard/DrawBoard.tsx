@@ -10,6 +10,8 @@ type NodeProp = {
     id: string,
     points: number[],
     strokeWidth: number,
+    handleClick?: (e: KonvaEventObject<MouseEvent>) => void,
+    isDrawing?: boolean,
 };
 
 type createdNode = {
@@ -25,12 +27,36 @@ type EventMapper = {
     };
 };
 
-const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element} = {
+const group2 = (arr: number[]) => {
+    const ret: number[][] = Array.from(Array(Math.floor((arr.length + 1) / 2)), () => []);
+    arr.forEach((val, i) => {
+        ret[Math.floor(i / 2)].push(val);
+    });
+    return ret;
+}
+
+const groupPoints = (arr: number[]) => {
+    const points = group2(arr);
+    const ret = [];
+    for (let i = 0; i < points.length - 1; i++) {
+        ret.push([...points[i], ...points[i + 1]]);
+    }
+    return ret;
+};
+
+const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element | JSX.Element[]} = {
     "line": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" strokeWidth={props.strokeWidth}></Line>,
     "curve": ({ id, points, strokeWidth }) => <QuadCurve key={id} id={id} points={points ? [...points] : []} stroke="black" strokeWidth={strokeWidth} />,
     "circle": ({ id, points, strokeWidth }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke="black" radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
     "rect": ({ id, points, strokeWidth }) => <Rect key={id} id={id} x={points[0]} y={points[1]} width={points[2]} height={points[3]} stroke="black" strokeWidth={strokeWidth} ></Rect>,
-    "poly": (props) => <></>,
+    "poly": ({ id, points, strokeWidth, handleClick, isDrawing }) => {
+        if (isDrawing) {
+            const first = <Circle key={id} id={id} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} ></Circle>
+            const lines = groupPoints(points).map((point, i) => <Line key={id + i + 1} id={(id + i + 1).toString()} points={[...point]} stroke="black" strokeWidth={1}></Line>);
+            return [first, ...lines];
+        }
+        return <Line key={id} id={id} points={[...points]} stroke="black" strokeWidth={strokeWidth} closed={true} />;
+    }
 };
 
 let id = 0;
@@ -140,9 +166,41 @@ export const DrawBoard = () => {
         "poly": {
             handleMouseDown: (e) => {},
             handleMouseMove: (e) => {},
-            handleMouseUp: (e) => {},
+            handleMouseUp: (e) => {
+                const { offsetX, offsetY } = e.evt;
+                setPoints([...points, offsetX, offsetY]);
+                setIsDrawing(true);
+            },
         },
     }
+
+    const currNodeMapper = {
+        base() {
+            return {
+                id: id.toString(),
+                points: [...points],
+                strokeWidth,
+            }
+        },
+        poly() {
+            const source = this.base();
+            return {
+                ...source,
+                handleClick: (e: KonvaEventObject<MouseEvent>) => {
+                    const newNodeProp: NodeProp = {
+                        id: id.toString(),
+                        points: [...points],
+                        strokeWidth,
+                    };
+                    id++;
+                    setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                    setIsDrawing(false);
+                    setPoints([]);
+                },
+                isDrawing: true,
+            }
+        }
+    };
 
     const { handleMouseDown, handleMouseMove, handleMouseUp } = eventMapper[selectedShape];
 
@@ -150,7 +208,7 @@ export const DrawBoard = () => {
         <Stage width={window.innerWidth} height={window.innerHeight} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} >
             <Layer>
                 {nodes.map(({ shape, prop }) => (mapper[shape](prop))) }
-                { isDrawing ? mapper[selectedShape]({id: id.toString(), points: [...points], strokeWidth}) : null }
+                { isDrawing ? mapper[selectedShape](selectedShape === "poly" ? currNodeMapper.poly() : currNodeMapper.base()) : null }
             </Layer>
         </Stage>
     );
