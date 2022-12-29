@@ -4,11 +4,15 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import Grid from '@mui/material/Grid';
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
+import { styled } from '@mui/material';
 
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectToolBox, setColor, setShapeType, setStrokeWidth, Shapes } from './toolBoxSlice';
 import type { ShapeType } from './toolBoxSlice';
-import { styled } from '@mui/material';
+
+import { undo, redo, setPoints, setIsDrawing } from '../drawBoard/drawBoardSlice';
 
 const GreySlider = styled(Slider)(({ theme }) => ({ color: theme.status.grey }));
 const RedSlider = styled(Slider)(({ theme }) => ({ color: theme.status.red }));
@@ -22,6 +26,8 @@ export const ToolBox = () => {
 
     const handleClick = (shape: ShapeType) => {
         dispatch(setShapeType(shape));
+        dispatch(setPoints([]));
+        dispatch(setIsDrawing(false));
     };
 
     return (
@@ -32,7 +38,14 @@ export const ToolBox = () => {
                         {Shapes.map(shape => <Button key={shape} disabled={shape === selectedShape} onClick={ () => handleClick(shape) } >{ shape }</Button>)}
                     </ButtonGroup>
                 </Grid>
-                <Grid item xs={8} />
+                <Grid item xs={1}></Grid>
+                <Grid item xs={1}>
+                    <ButtonGroup variant="outlined" aria-label="outlined primary button group">
+                        <Button onClick={() => dispatch(undo()) }><UndoIcon /></Button>
+                        <Button onClick={() => dispatch(redo()) }><RedoIcon /></Button>
+                    </ButtonGroup>
+                </Grid>
+                <Grid item xs={6} />
                 <Grid item xs={8}>
                     <GreySlider
                         size="small"

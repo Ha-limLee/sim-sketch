@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectToolBox } from '../toolBox/toolBoxSlice';
 import type { ShapeType } from '../toolBox/toolBoxSlice';
 import { QuadCurve } from '../quadCurve/QuadCurve';
-import { DrawBoardState, selectDrawBoard, setNodeId, setNodes } from './drawBoardSlice';
+import { DrawBoardState, selectDrawBoard, setNodes, setPoints, setIsDrawing } from './drawBoardSlice';
 import type { NodeProp } from './drawBoardSlice';
 
 type EventMapper = {
@@ -53,19 +53,15 @@ const toRgb = ({ red, green, blue }: { red: number, green: number, blue: number 
 export const DrawBoard = () => {
     const dispatch = useAppDispatch();
     
-    const customEquality = (oldVal: DrawBoardState, newVal: DrawBoardState) => oldVal.nodes === newVal.nodes;
+    const customEquality = (oldVal: DrawBoardState, newVal: DrawBoardState) => (oldVal.nodes === newVal.nodes && oldVal.points === newVal.points && oldVal.isDrawing === newVal.isDrawing);
     const drawBoardState = useAppSelector(selectDrawBoard, customEquality);
-    const { nodes, nodeId } = drawBoardState;
-
-    const [points, setPoints] = React.useState<number[]>([]);
-    const [isDrawing, setIsDrawing] = React.useState<boolean>(false);
+    const { nodes, nodeId, points, isDrawing } = drawBoardState;
 
     const toolBoxState = useAppSelector(selectToolBox);
     const { selectedShape, strokeWidth, color } = toolBoxState;
 
-    const currNodeMapper = {
+    const currNodeMapper: { [T in ShapeType | 'base'] ?: any } = {
         base() {
-            dispatch(setNodeId(nodeId + 1));
             return {
                 id: nodeId.toString(),
                 points: [...points],
@@ -78,9 +74,9 @@ export const DrawBoard = () => {
             return {
                 ...source,
                 handleClick: (e: KonvaEventObject<MouseEvent>) => {
-                    dispatch(setNodes([...nodes, { shape: selectedShape, prop: this.base() }]));
-                    setIsDrawing(false);
-                    setPoints([]);
+                    dispatch(setNodes([...nodes, { shape: selectedShape, prop: {...source} }]));
+                    dispatch(setIsDrawing(false));
+                    dispatch(setPoints([]));
                 },
                 isDrawing: true,
             }
@@ -90,70 +86,72 @@ export const DrawBoard = () => {
     const eventMapper: EventMapper = {
         "line": {
             handleMouseDown: (e) => {
-                setPoints([e.evt.offsetX, e.evt.offsetY]);
-                setIsDrawing(true);
+                dispatch(setPoints([e.evt.offsetX, e.evt.offsetY]));
+                dispatch(setIsDrawing(true));
             },
             handleMouseMove: (e) => {
                 if (!isDrawing) return;
-                setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
+                dispatch(setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]));
             },
             handleMouseUp: (e) => {
                 dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
-                setIsDrawing(false);
-                setPoints([]);
+                dispatch(setIsDrawing(false));
+                dispatch(setPoints([]));
             },
         },
         "curve": {
             handleMouseDown: (e) => {
-                setPoints([e.evt.offsetX, e.evt.offsetY]);
-                setIsDrawing(true);
+                dispatch(setPoints([e.evt.offsetX, e.evt.offsetY]));
+                dispatch(setIsDrawing(true));
             },
             handleMouseMove: (e) => {
                 if (!isDrawing) return;
-                setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
+                const { offsetX, offsetY } = e.evt;
+                const center = [points[0] + offsetX, points[1] + offsetY].map(x => x / 2);
+                dispatch(setPoints([...points.slice(0, 2), ...center, offsetX, offsetY]));
             },
-            handleMouseUp: (e) => {
+            handleMouseUp(e) {
                 dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
-                setIsDrawing(false);
-                setPoints([]);
+                dispatch(setIsDrawing(false));
+                dispatch(setPoints([]));
             },
         },
         "circle": {
             handleMouseDown: (e) => {
                 const start = [e.evt.offsetX, e.evt.offsetY];
-                setPoints([...start, ...start, 0, 0]);
-                setIsDrawing(true);
+                dispatch(setPoints([...start, ...start, 0, 0]));
+                dispatch(setIsDrawing(true));
             },
             handleMouseMove: (e) => {
                 if (!isDrawing) return;
                 const { offsetX, offsetY } = e.evt;
                 const center = [points[0] + offsetX, points[1] + offsetY].map(x => x / 2);
                 const radius = [center[0] - offsetX, center[1] - offsetY].map(x => Math.abs(x)).reduce((prev, curr) => Math.min(prev, curr));
-                setPoints([...points.slice(0, 2), ...center, radius]);
+                dispatch(setPoints([...points.slice(0, 2), ...center, radius]));
             },
             handleMouseUp: (e) => {
                 dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
-                setIsDrawing(false);
-                setPoints([]);
+                dispatch(setIsDrawing(false));
+                dispatch(setPoints([]));
             },
         },
         "rect": {
             handleMouseDown: (e) => {
                 const start = [e.evt.offsetX, e.evt.offsetY];
-                setPoints([...start, 0, 0]);
-                setIsDrawing(true);
+                dispatch(setPoints([...start, 0, 0]));
+                dispatch(setIsDrawing(true));
             },
             handleMouseMove: (e) => {
                 if (!isDrawing) return;
                 const { offsetX, offsetY } = e.evt;
                 const width = offsetX - points[0];
                 const height = offsetY - points[1];
-                setPoints([...points.slice(0, 2), width, height]);
+                dispatch(setPoints([...points.slice(0, 2), width, height]));
             },
             handleMouseUp: (e) => {
                 dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
-                setIsDrawing(false);
-                setPoints([]);
+                dispatch(setIsDrawing(false));
+                dispatch(setPoints([]));
             },
         },
         "poly": {
@@ -161,8 +159,8 @@ export const DrawBoard = () => {
             handleMouseMove: (e) => { },
             handleMouseUp: (e) => {
                 const { offsetX, offsetY } = e.evt;
-                setPoints([...points, offsetX, offsetY]);
-                setIsDrawing(true);
+                dispatch(setPoints([...points, offsetX, offsetY]));
+                dispatch(setIsDrawing(true));
             },
         },
     };
@@ -173,7 +171,7 @@ export const DrawBoard = () => {
         <Stage width={window.innerWidth} height={window.innerHeight} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} >
             <Layer>
                 {nodes.map(({ shape, prop }) => (mapper[shape](prop))) }
-                { isDrawing ? mapper[selectedShape](selectedShape === "poly" ? currNodeMapper.poly() : currNodeMapper.base()) : null }
+                { isDrawing ? mapper[selectedShape]((selectedShape in currNodeMapper) ? currNodeMapper[selectedShape]() : currNodeMapper.base()) : null }
             </Layer>
         </Stage>
     );
