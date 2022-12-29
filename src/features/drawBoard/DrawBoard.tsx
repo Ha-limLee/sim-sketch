@@ -1,24 +1,12 @@
 import React from 'react';
 import { Stage, Layer, Line, Circle, Rect } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
-import { useAppSelector } from '../../app/hooks';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectToolBox } from '../toolBox/toolBoxSlice';
 import type { ShapeType } from '../toolBox/toolBoxSlice';
 import { QuadCurve } from '../quadCurve/QuadCurve';
-
-type NodeProp = {
-    id: string,
-    points: number[],
-    strokeWidth: number,
-    handleClick?: (e: KonvaEventObject<MouseEvent>) => void,
-    isDrawing?: boolean,
-    color: string,
-};
-
-type createdNode = {
-    shape: ShapeType,
-    prop: NodeProp,
-};
+import { DrawBoardState, selectDrawBoard, setNodeId, setNodes } from './drawBoardSlice';
+import type { NodeProp } from './drawBoardSlice';
 
 type EventMapper = {
     [T in ShapeType]: {
@@ -60,12 +48,15 @@ const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element | JSX.Element[
     }
 };
 
-let id = 0;
-
 const toRgb = ({ red, green, blue }: { red: number, green: number, blue: number }) => `rgb(${red}, ${green}, ${blue})`;
 
 export const DrawBoard = () => {
-    const [nodes, setNodes] = React.useState<createdNode[]>([]);
+    const dispatch = useAppDispatch();
+    
+    const customEquality = (oldVal: DrawBoardState, newVal: DrawBoardState) => oldVal.nodes === newVal.nodes;
+    const drawBoardState = useAppSelector(selectDrawBoard, customEquality);
+    const { nodes, nodeId } = drawBoardState;
+
     const [points, setPoints] = React.useState<number[]>([]);
     const [isDrawing, setIsDrawing] = React.useState<boolean>(false);
 
@@ -74,8 +65,9 @@ export const DrawBoard = () => {
 
     const currNodeMapper = {
         base() {
+            dispatch(setNodeId(nodeId + 1));
             return {
-                id: (id++).toString(),
+                id: nodeId.toString(),
                 points: [...points],
                 strokeWidth,
                 color: toRgb(color),
@@ -86,7 +78,7 @@ export const DrawBoard = () => {
             return {
                 ...source,
                 handleClick: (e: KonvaEventObject<MouseEvent>) => {
-                    setNodes([...nodes, { shape: selectedShape, prop: this.base() }]);
+                    dispatch(setNodes([...nodes, { shape: selectedShape, prop: this.base() }]));
                     setIsDrawing(false);
                     setPoints([]);
                 },
@@ -106,7 +98,7 @@ export const DrawBoard = () => {
                 setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
             },
             handleMouseUp: (e) => {
-                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
+                dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
                 setIsDrawing(false);
                 setPoints([]);
             },
@@ -121,7 +113,7 @@ export const DrawBoard = () => {
                 setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
             },
             handleMouseUp: (e) => {
-                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
+                dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
                 setIsDrawing(false);
                 setPoints([]);
             },
@@ -140,7 +132,7 @@ export const DrawBoard = () => {
                 setPoints([...points.slice(0, 2), ...center, radius]);
             },
             handleMouseUp: (e) => {
-                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
+                dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
                 setIsDrawing(false);
                 setPoints([]);
             },
@@ -156,11 +148,10 @@ export const DrawBoard = () => {
                 const { offsetX, offsetY } = e.evt;
                 const width = offsetX - points[0];
                 const height = offsetY - points[1];
-
                 setPoints([...points.slice(0, 2), width, height]);
             },
             handleMouseUp: (e) => {
-                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
+                dispatch(setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]));
                 setIsDrawing(false);
                 setPoints([]);
             },

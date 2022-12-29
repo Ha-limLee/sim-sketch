@@ -47,7 +47,7 @@ export const QuadCurve = ({ id, points, stroke, strokeWidth }: { id: string, poi
         <>
             <Shape stroke={stroke} strokeWidth={strokeWidth} sceneFunc={anchorPoint.every(x => x) ? sceneFunc.onEnd : sceneFunc.onMove} />
             { anchorPoint.every(x => x) ?
-                <Circle id={id} x={center[0]} y={center[1]} radius={25} stroke="gray" strokeWidth={5} draggable={true} dash={[10, 10]}
+                <Circle x={center[0]} y={center[1]} radius={25} stroke="gray" strokeWidth={5} draggable={true} dash={[10, 10]}
                     onMouseDown={anchorEvent.handleMouseDown} onDragMove={anchorEvent.handleDragMove}
                 /> : null }
         </>

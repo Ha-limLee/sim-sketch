@@ -2,14 +2,17 @@ import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import toolBoxReducer from '../features/toolBox/toolBoxSlice';
+import drawBoardReducer from '../features/drawBoard/drawBoardSlice';
 
 const reducers = combineReducers({
     toolBox: toolBoxReducer,
+    drawBoard: drawBoardReducer,
 });
 
 const persistConfig = {
     key: 'root',
     storage,
+    blacklist: ["toolBox"],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducers);
