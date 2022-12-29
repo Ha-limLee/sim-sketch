@@ -24,10 +24,6 @@ export const ToolBox = () => {
         dispatch(setShapeType(shape));
     };
 
-    const handleChange = (e: Event, value: number | number[]) => {
-        dispatch(setStrokeWidth(value as number));
-    };
-
     return (
         <Box mt={4} ml={2}>
             <Grid container>
@@ -45,7 +41,7 @@ export const ToolBox = () => {
                         defaultValue={10}
                         aria-label="Small"
                         valueLabelDisplay="auto"
-                        onChange={handleChange}
+                        onChangeCommitted={(e, value) => dispatch(setStrokeWidth(value as number))}
                     />
                 </Grid>
                 <Grid item xs={4} />
@@ -57,10 +53,13 @@ export const ToolBox = () => {
                         defaultValue={0}
                         aria-label="Small"
                         valueLabelDisplay="auto"
-                        onChange={(e, value) => dispatch(setColor({...color, red: value as number}))}
+                        onChangeCommitted={(e, value) => dispatch(setColor({...color, red: value as number}))}
                     />
                 </Grid>
-                <Grid item xs={4} />
+                <Grid item xs={1} />
+                <Grid item xs={1} sx={{backgroundColor: `rgb(${color.red}, ${color.green}, ${color.blue})`}}>
+                </Grid>
+                <Grid item xs={2} />
                 <Grid item xs={8}>
                     <GreenSlider
                         size="small"
@@ -69,7 +68,7 @@ export const ToolBox = () => {
                         defaultValue={0}
                         aria-label="Small"
                         valueLabelDisplay="auto"
-                        onChange={(e, value) => dispatch(setColor({...color, green: value as number}))}
+                        onChangeCommitted={(e, value) => dispatch(setColor({...color, green: value as number}))}
                     />
                 </Grid>
                 <Grid item xs={4} />
@@ -81,7 +80,7 @@ export const ToolBox = () => {
                         defaultValue={0}
                         aria-label="Small"
                         valueLabelDisplay="auto"
-                        onChange={(e, value) => dispatch(setColor({...color, blue: value as number}))}
+                        onChangeCommitted={(e, value) => dispatch(setColor({...color, blue: value as number}))}
                     />
                 </Grid>
                 <Grid item xs={4} />
