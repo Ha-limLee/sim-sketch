@@ -12,6 +12,7 @@ type NodeProp = {
     strokeWidth: number,
     handleClick?: (e: KonvaEventObject<MouseEvent>) => void,
     isDrawing?: boolean,
+    color: string,
 };
 
 type createdNode = {
@@ -45,21 +46,23 @@ const groupPoints = (arr: number[]) => {
 };
 
 const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element | JSX.Element[]} = {
-    "line": (props) => <Line key={props.id} id={props.id} points={props.points ? [...props.points] : []} stroke="black" strokeWidth={props.strokeWidth}></Line>,
-    "curve": ({ id, points, strokeWidth }) => <QuadCurve key={id} id={id} points={points ? [...points] : []} stroke="black" strokeWidth={strokeWidth} />,
-    "circle": ({ id, points, strokeWidth }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke="black" radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
-    "rect": ({ id, points, strokeWidth }) => <Rect key={id} id={id} x={points[0]} y={points[1]} width={points[2]} height={points[3]} stroke="black" strokeWidth={strokeWidth} ></Rect>,
-    "poly": ({ id, points, strokeWidth, handleClick, isDrawing }) => {
+    "line": ({ id, points, strokeWidth, color }) => <Line key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth}></Line>,
+    "curve": ({ id, points, strokeWidth, color }) => <QuadCurve key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth} />,
+    "circle": ({ id, points, strokeWidth, color }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke={color} radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
+    "rect": ({ id, points, strokeWidth, color }) => <Rect key={id} id={id} x={points[0]} y={points[1]} width={points[2]} height={points[3]} stroke={color} strokeWidth={strokeWidth} ></Rect>,
+    "poly": ({ id, points, strokeWidth, color, handleClick, isDrawing }) => {
         if (isDrawing) {
-            const first = <Circle key={id} id={id} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} ></Circle>
+            const first = <Circle key={id} id={id} x={points[0]} y={points[1]} radius={10} stroke={color} onClick={handleClick} ></Circle>
             const lines = groupPoints(points).map((point, i) => <Line key={id + i + 1} id={(id + i + 1).toString()} points={[...point]} stroke="black" strokeWidth={1}></Line>);
             return [first, ...lines];
         }
-        return <Line key={id} id={id} points={[...points]} stroke="black" strokeWidth={strokeWidth} closed={true} />;
+        return <Line key={id} id={id} points={[...points]} stroke={color} strokeWidth={strokeWidth} closed={true} />;
     }
 };
 
 let id = 0;
+
+const toRgb = ({ red, green, blue }: { red: number, green: number, blue: number }) => `rgb(${red}, ${green}, ${blue})`;
 
 export const DrawBoard = () => {
     const [nodes, setNodes] = React.useState<createdNode[]>([]);
@@ -67,7 +70,30 @@ export const DrawBoard = () => {
     const [isDrawing, setIsDrawing] = React.useState<boolean>(false);
 
     const toolBoxState = useAppSelector(selectToolBox);
-    const { selectedShape, strokeWidth } = toolBoxState;
+    const { selectedShape, strokeWidth, color } = toolBoxState;
+
+    const currNodeMapper = {
+        base() {
+            return {
+                id: (id++).toString(),
+                points: [...points],
+                strokeWidth,
+                color: toRgb(color),
+            }
+        },
+        poly() {
+            const source = this.base();
+            return {
+                ...source,
+                handleClick: (e: KonvaEventObject<MouseEvent>) => {
+                    setNodes([...nodes, { shape: selectedShape, prop: this.base() }]);
+                    setIsDrawing(false);
+                    setPoints([]);
+                },
+                isDrawing: true,
+            }
+        }
+    };
 
     const eventMapper: EventMapper = {
         "line": {
@@ -80,13 +106,7 @@ export const DrawBoard = () => {
                 setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
             },
             handleMouseUp: (e) => {
-                const newNodeProp: NodeProp = {
-                    id: id.toString(),
-                    points: [...points],
-                    strokeWidth,
-                };
-                id++;
-                setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
                 setIsDrawing(false);
                 setPoints([]);
             },
@@ -101,13 +121,7 @@ export const DrawBoard = () => {
                 setPoints([...points.slice(0, 2), e.evt.offsetX, e.evt.offsetY]);
             },
             handleMouseUp: (e) => {
-                const newNodeProp: NodeProp = {
-                    id: id.toString(),
-                    points: [...points],
-                    strokeWidth,
-                };
-                id++;
-                setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
                 setIsDrawing(false);
                 setPoints([]);
             },
@@ -119,20 +133,14 @@ export const DrawBoard = () => {
                 setIsDrawing(true);
             },
             handleMouseMove: (e) => {
-                if (!isDrawing) return; 
+                if (!isDrawing) return;
                 const { offsetX, offsetY } = e.evt;
                 const center = [points[0] + offsetX, points[1] + offsetY].map(x => x / 2);
                 const radius = [center[0] - offsetX, center[1] - offsetY].map(x => Math.abs(x)).reduce((prev, curr) => Math.min(prev, curr));
                 setPoints([...points.slice(0, 2), ...center, radius]);
             },
             handleMouseUp: (e) => {
-                const newNodeProp: NodeProp = {
-                    id: id.toString(),
-                    points: [...points],
-                    strokeWidth,
-                };
-                id++;
-                setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
                 setIsDrawing(false);
                 setPoints([]);
             },
@@ -144,7 +152,7 @@ export const DrawBoard = () => {
                 setIsDrawing(true);
             },
             handleMouseMove: (e) => {
-                if (!isDrawing) return; 
+                if (!isDrawing) return;
                 const { offsetX, offsetY } = e.evt;
                 const width = offsetX - points[0];
                 const height = offsetY - points[1];
@@ -152,54 +160,20 @@ export const DrawBoard = () => {
                 setPoints([...points.slice(0, 2), width, height]);
             },
             handleMouseUp: (e) => {
-                const newNodeProp: NodeProp = {
-                    id: id.toString(),
-                    points: [...points],
-                    strokeWidth,
-                };
-                id++;
-                setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
+                setNodes([...nodes, { shape: selectedShape, prop: currNodeMapper.base() }]);
                 setIsDrawing(false);
                 setPoints([]);
             },
         },
         "poly": {
-            handleMouseDown: (e) => {},
-            handleMouseMove: (e) => {},
+            handleMouseDown: (e) => { },
+            handleMouseMove: (e) => { },
             handleMouseUp: (e) => {
                 const { offsetX, offsetY } = e.evt;
                 setPoints([...points, offsetX, offsetY]);
                 setIsDrawing(true);
             },
         },
-    }
-
-    const currNodeMapper = {
-        base() {
-            return {
-                id: id.toString(),
-                points: [...points],
-                strokeWidth,
-            }
-        },
-        poly() {
-            const source = this.base();
-            return {
-                ...source,
-                handleClick: (e: KonvaEventObject<MouseEvent>) => {
-                    const newNodeProp: NodeProp = {
-                        id: id.toString(),
-                        points: [...points],
-                        strokeWidth,
-                    };
-                    id++;
-                    setNodes([...nodes, { shape: selectedShape, prop: newNodeProp }]);
-                    setIsDrawing(false);
-                    setPoints([]);
-                },
-                isDrawing: true,
-            }
-        }
     };
 
     const { handleMouseDown, handleMouseMove, handleMouseUp } = eventMapper[selectedShape];
