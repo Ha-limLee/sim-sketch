@@ -40,8 +40,8 @@ const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element | JSX.Element[
     "rect": ({ id, points, strokeWidth, color }) => <Rect key={id} id={id} x={points[0]} y={points[1]} width={points[2]} height={points[3]} stroke={color} strokeWidth={strokeWidth} ></Rect>,
     "poly": ({ id, points, strokeWidth, color, handleClick, isDrawing }) => {
         if (isDrawing) {
-            const first = <Circle key={id} id={id} x={points[0]} y={points[1]} radius={10} stroke={color} onClick={handleClick} ></Circle>
-            const lines = groupPoints(points).map((point, i) => <Line key={id + i + 1} id={(id + i + 1).toString()} points={[...point]} stroke="black" strokeWidth={1}></Line>);
+            const first = <Circle key={id} id={id} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} ></Circle>
+            const lines = groupPoints(points).map((point, i) => <Line key={id + i + 1} id={(id + i + 1).toString()} points={[...point]} stroke={color} strokeWidth={1}></Line>);
             return [first, ...lines];
         }
         return <Line key={id} id={id} points={[...points]} stroke={color} strokeWidth={strokeWidth} closed={true} />;
