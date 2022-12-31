@@ -4,16 +4,22 @@ import storage from "redux-persist/lib/storage";
 import toolBoxReducer from '../features/toolBox/toolBoxSlice';
 import drawBoardReducer from '../features/drawBoard/drawBoardSlice';
 
-const reducers = combineReducers({
-    toolBox: toolBoxReducer,
-    drawBoard: drawBoardReducer,
-});
-
 const persistConfig = {
     key: 'root',
     storage,
-    blacklist: ["toolBox"],
+    blacklist: ["toolBox", "drawBoard"],
 };
+
+const drawBoardConfig = {
+    key: 'toolBox',
+    storage,
+    blacklist: ["draft"],
+}
+
+const reducers = combineReducers({
+    toolBox: toolBoxReducer,
+    drawBoard: persistReducer(drawBoardConfig, drawBoardReducer),
+});
 
 const persistedReducer = persistReducer(persistConfig, reducers);
 
