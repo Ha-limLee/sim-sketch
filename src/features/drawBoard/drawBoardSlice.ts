@@ -1,16 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { KonvaEventObject } from 'konva/lib/Node';
 import { ShapeType } from '../toolBox/toolBoxSlice';
 
 export type NodeProp = {
     id: string,
     points: number[],
     strokeWidth: number,
-    handleClick?: (e: KonvaEventObject<MouseEvent>) => void,
-    handleDragEnd?: (e: KonvaEventObject<DragEvent>) => void,
-    isDrawing?: boolean,
     color: string,
 };
 

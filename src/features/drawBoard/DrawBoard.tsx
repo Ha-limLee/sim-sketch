@@ -16,36 +16,15 @@ type EventMapper = {
     };
 };
 
-const group2 = (arr: number[]) => {
-    const ret: number[][] = Array.from(Array(Math.floor((arr.length + 1) / 2)), () => []);
-    arr.forEach((val, i) => {
-        ret[Math.floor(i / 2)].push(val);
-    });
-    return ret;
-}
-
-const groupPoints = (arr: number[]) => {
-    const points = group2(arr);
-    const ret = [];
-    for (let i = 0; i < points.length - 1; i++) {
-        ret.push([...points[i], ...points[i + 1]]);
-    }
-    return ret;
-};
-
-const mapper: {[T in ShapeType]: (props: NodeProp) => JSX.Element | JSX.Element[]} = {
+const mapper: { [T in ShapeType]: (props: NodeProp & { handleClick?: (evt: KonvaEventObject<MouseEvent>) => void; isDrawing?: boolean }) => JSX.Element | JSX.Element[]} = {
     "line": ({ id, points, strokeWidth, color }) => <Line key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth}></Line>,
     "curve": ({ id, points, strokeWidth, color }) => <QuadCurve key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth} />,
     "circle": ({ id, points, strokeWidth, color }) => <Circle key={id} id={id} x={points[2]} y={points[3]} stroke={color} radius={points[4]} strokeWidth={strokeWidth} ></Circle>,
     "rect": ({ id, points, strokeWidth, color }) => <Rect key={id} id={id} x={points[0]} y={points[1]} width={points[2]} height={points[3]} stroke={color} strokeWidth={strokeWidth} ></Rect>,
-    "poly": ({ id, points, strokeWidth, color, handleClick, isDrawing }) => {
-        if (isDrawing) {
-            const first = <Circle key={id} id={id} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} ></Circle>
-            const lines = groupPoints(points).map((point, i) => <Line key={id + i + 1} id={(id + i + 1).toString()} points={[...point]} stroke={color} strokeWidth={1}></Line>);
-            return [first, ...lines];
-        }
-        return <Line key={id} id={id} points={[...points]} stroke={color} strokeWidth={strokeWidth} closed={true} />;
-    }
+    "poly": ({ id, points, strokeWidth, color, handleClick, isDrawing }) => (
+        isDrawing
+        ? [<Line key={id} id={id} points={[...points]} stroke={color} strokeWidth={1} />, <Circle key={id + 1} id={id + 1} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} />]
+        : <Line key={id} id={id} points={[...points]} stroke={color} strokeWidth={strokeWidth} closed={true} /> )
 };
 
 const toRgb = ({ red, green, blue }: { red: number, green: number, blue: number }) => `rgb(${red}, ${green}, ${blue})`;
