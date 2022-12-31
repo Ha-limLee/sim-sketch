@@ -5,9 +5,15 @@ import { ShapeType } from '../toolBox/toolBoxSlice';
 
 export type NodeProp = {
     id: string,
-    points: number[],
-    strokeWidth: number,
-    color: string,
+    x?: number,
+    y?: number,
+    radius?: number,
+    width?: number,
+    height?: number,
+    points?: number[],
+    anchorPoint?: number[],
+    strokeWidth?: number,
+    color?: string,
 };
 
 export type createdNode = {
@@ -16,20 +22,31 @@ export type createdNode = {
 };
 
 export interface DrawBoardState {
-    nodeId: number;
     nodes: createdNode[];
-    points: number[],
+    draft: NodeProp;
     isDrawing: boolean,
     undoStack: createdNode[];
 }
 
 const initialState: DrawBoardState = {
-    nodeId: 0,
     nodes: [],
-    points: [],
+    draft: { id: '0' },
     isDrawing: false,
     undoStack: [],
 };
+
+function* IdGen() {
+    let prevId = '';
+    while (true) {
+        let nextId = '';
+        do {
+            nextId = Date.now().toString() + Math.random().toString();
+        } while (nextId === prevId);
+        yield (prevId = nextId);
+    }
+}
+
+const gen = IdGen();
 
 export const drawBoardSlice = createSlice({
     name: "drawBoard",
@@ -38,21 +55,23 @@ export const drawBoardSlice = createSlice({
         setNodes: (state, { payload }: PayloadAction<createdNode[]>) => {
             state.nodes = payload;
         },
-        setNodeId: (state, { payload }: PayloadAction<number>) => {
-            state.nodeId = payload;
+        modifyProp: ({ nodes }, { payload }: PayloadAction<NodeProp>) => {
+            const index = nodes.findIndex(x => x.prop.id === payload.id);
+            if (index !== -1) {
+                const { prop } = nodes[index];
+                nodes[index].prop = { ...prop, ...payload };
+                return;
+            }
         },
-        modifyPoints: ({ nodes }, { payload: {id, points} }: PayloadAction<{id: string, points: number[]}>) => {
-            const index = nodes.findIndex(x => x.prop.id === id);
-            if (index !== -1) nodes[index].prop.points = points;
-        },
-        setPoints: (state, { payload }: PayloadAction<number[]>) => {
-            state.points = payload;
+        setDraft: (state, {payload}: PayloadAction<NodeProp>) => {
+            state.draft = payload;
         },
         setIsDrawing: (state, {payload}: PayloadAction<boolean>) => {
             state.isDrawing = payload;
-            if (payload) {
-                state.nodeId += 1;
-            }
+            if (!payload) return;
+            const { value: id, done } = gen.next();
+            if (done) return;
+            state.draft.id = id;
         },
         undo: ({ nodes, undoStack }) => {
             const last = nodes.pop();
@@ -71,7 +90,7 @@ export const drawBoardSlice = createSlice({
     }
 });
 
-export const { setNodes, setNodeId, modifyPoints, setPoints, setIsDrawing, undo, redo } = drawBoardSlice.actions;
+export const { setNodes, modifyProp, setDraft, setIsDrawing, undo, redo } = drawBoardSlice.actions;
 
 export const selectDrawBoard = (state: RootState) => state.drawBoard;
 

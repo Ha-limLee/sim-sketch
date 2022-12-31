@@ -12,7 +12,7 @@ import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectToolBox, setColor, setShapeType, setStrokeWidth, Shapes } from './toolBoxSlice';
 import type { ShapeType } from './toolBoxSlice';
 
-import { undo, redo, setPoints, setIsDrawing } from '../drawBoard/drawBoardSlice';
+import { undo, redo, setIsDrawing } from '../drawBoard/drawBoardSlice';
 
 const GreySlider = styled(Slider)(({ theme }) => ({ color: theme.status.grey }));
 const RedSlider = styled(Slider)(({ theme }) => ({ color: theme.status.red }));
@@ -26,7 +26,6 @@ export const ToolBox = () => {
 
     const handleClick = (shape: ShapeType) => {
         dispatch(setShapeType(shape));
-        dispatch(setPoints([]));
         dispatch(setIsDrawing(false));
     };
 
