@@ -7,13 +7,10 @@ import Grid from '@mui/material/Grid';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import { Container, styled } from '@mui/material';
-
 import { useAppSelector, useAppDispatch } from '../../app/hooks';
 import { selectToolBox, setColor, setShapeType, setStrokeWidth, Shapes } from './toolBoxSlice';
 import type { ShapeType } from './toolBoxSlice';
-
 import { undo, redo, setIsDrawing } from '../drawBoard/drawBoardSlice';
-import { Layer, Rect, Stage } from 'react-konva';
 
 const GreySlider = styled(Slider)(({ theme }) => ({ color: theme.status.grey }));
 const RedSlider = styled(Slider)(({ theme }) => ({ color: theme.status.red }));
