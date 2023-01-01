@@ -95,4 +95,4 @@ At root directory, type below commands to install all dependencies.
 
 Now you can launch dev server.
 
-> npm run serve
+> npm run dev
