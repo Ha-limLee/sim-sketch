@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectToolBox } from '../toolBox/toolBoxSlice';
 import type { ShapeType } from '../toolBox/toolBoxSlice';
 import { QuadCurve } from '../quadCurve/QuadCurve';
-import { selectDrawBoard, setNodes, setDraft, setIsDrawing } from './drawBoardSlice';
+import { selectDrawBoard, setNodes, setDraft, setIsDrawing, setIsDragging } from './drawBoardSlice';
 import type { NodeProp } from './drawBoardSlice';
 
 type EventMapper = {
@@ -16,13 +16,13 @@ type EventMapper = {
     };
 };
 
-type DraftProp = NodeProp & { handleClick?: (evt: KonvaEventObject<MouseEvent>) => void; isDrawing?: boolean };
+type DraftProp = NodeProp & { handleClick?: (evt: KonvaEventObject<MouseEvent>) => void; handleAnchorDragEnd?: (anchor: number[]) => void; isDrawing?: boolean };
 
 const nodeBuilder: { [T in ShapeType]: (props: DraftProp) => JSX.Element | JSX.Element[] | undefined } = {
     "line": ({ id, points, strokeWidth, color }) =>
                 <Line key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth}></Line>,
-    "curve": ({ id, points, anchorPoint, strokeWidth, color }) =>
-                <QuadCurve key={id} id={id} points={points ? [...points] : []} anchorPoint={anchorPoint ? [...anchorPoint] : []} stroke={color ?? "black"} strokeWidth={strokeWidth ?? 5} />,
+    "curve": ({ id, points, anchorPoint, strokeWidth, color, isDrawing, handleAnchorDragEnd }) =>
+                <QuadCurve key={id} id={id} isDrawing={isDrawing} points={points ? [...points] : []} anchorPoint={anchorPoint ? [...anchorPoint] : []} stroke={color ?? "black"} strokeWidth={strokeWidth} onAnchorDragEnd={handleAnchorDragEnd} />,
     "circle": ({ id, x, y, radius, strokeWidth, color }) =>
                 <Circle key={id} id={id} x={x} y={y} stroke={color} radius={radius} strokeWidth={strokeWidth} ></Circle>,
     "rect": ({ id, x, y, width, height, strokeWidth, color }) =>
@@ -43,20 +43,27 @@ export const DrawBoard = () => {
     const dispatch = useAppDispatch();
     
     const drawBoardState = useAppSelector(selectDrawBoard);
-    const { nodes, draft, isDrawing } = drawBoardState;
+    const { nodes, draft, isDrawing, isDragging } = drawBoardState;
 
     const toolBoxState = useAppSelector(selectToolBox);
     const { selectedShape, strokeWidth, color } = toolBoxState;
 
     const createDraft = () => ({ id: draft.id, strokeWidth, color: toRgb(color) });
 
-    const draftMapper: { [T in ShapeType] ?: DraftProp } = {
+    const draftMapper: { [T in ShapeType]?: DraftProp } = {
+        curve: {
+            ...draft,
+            handleAnchorDragEnd(anchor) {
+                dispatch(setNodes([...nodes, { shape: selectedShape, prop: { ...draft, anchorPoint: anchor } }]));
+                dispatch(setIsDrawing(false));
+            },
+            isDrawing: true,
+        },
         poly: {
             ...draft,
-            handleClick: (e: KonvaEventObject<MouseEvent>) => {
+            handleClick: (e) => {
                 dispatch(setNodes([...nodes, {shape: selectedShape, prop: draft}]));
                 dispatch(setIsDrawing(false));
-                dispatch(setDraft(createDraft()));
             },
             isDrawing: true,
         }
@@ -85,17 +92,17 @@ export const DrawBoard = () => {
                 const { offsetX, offsetY } = e.evt;
                 dispatch(setDraft({ ...createDraft(), points: [offsetX, offsetY] }));
                 dispatch(setIsDrawing(true));
+                dispatch(setIsDragging(true));
             },
             handleMouseMove: (e) => {
                 const points = draft.points;
-                if (!isDrawing || !points || points.length < 2) return;
+                if (!isDrawing || !isDragging || !points || points.length < 2) return;
                 const { offsetX, offsetY } = e.evt;
                 const anchorPoint = [points[0] + offsetX, points[1] + offsetY].map(x => x / 2);
                 dispatch(setDraft({ ...draft, points: [...points.slice(0, 2), offsetX, offsetY], anchorPoint }));
             },
             handleMouseUp(e) {
-                dispatch(setNodes([...nodes, { shape: selectedShape, prop: draft }]));
-                dispatch(setIsDrawing(false));
+                dispatch(setIsDragging(false));
             },
         },
         "circle": {

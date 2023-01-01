@@ -25,6 +25,7 @@ export interface DrawBoardState {
     nodes: createdNode[];
     draft: NodeProp;
     isDrawing: boolean,
+    isDragging: boolean,
     undoStack: createdNode[];
 }
 
@@ -32,6 +33,7 @@ const initialState: DrawBoardState = {
     nodes: [],
     draft: { id: '0' },
     isDrawing: false,
+    isDragging: false,
     undoStack: [],
 };
 
@@ -73,6 +75,9 @@ export const drawBoardSlice = createSlice({
             if (done) return;
             state.draft.id = id;
         },
+        setIsDragging: (state, { payload }: PayloadAction<boolean>) => {
+            state.isDragging = payload;
+        },
         undo: ({ nodes, undoStack }) => {
             const last = nodes.pop();
             if (!last) return;
@@ -90,7 +95,7 @@ export const drawBoardSlice = createSlice({
     }
 });
 
-export const { setNodes, modifyProp, setDraft, setIsDrawing, undo, redo } = drawBoardSlice.actions;
+export const { setNodes, modifyProp, setDraft, setIsDrawing, setIsDragging, undo, redo } = drawBoardSlice.actions;
 
 export const selectDrawBoard = (state: RootState) => state.drawBoard;
 
