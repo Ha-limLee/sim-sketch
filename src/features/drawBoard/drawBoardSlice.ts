@@ -56,6 +56,9 @@ export const drawBoardSlice = createSlice({
     reducers: {
         setNodes: (state, { payload }: PayloadAction<createdNode[]>) => {
             state.nodes = payload;
+            const { value: id, done } = gen.next();
+            if (done) return;
+            state.draft.id = id;
         },
         modifyProp: ({ nodes }, { payload }: PayloadAction<NodeProp>) => {
             const index = nodes.findIndex(x => x.prop.id === payload.id);
@@ -70,10 +73,6 @@ export const drawBoardSlice = createSlice({
         },
         setIsDrawing: (state, {payload}: PayloadAction<boolean>) => {
             state.isDrawing = payload;
-            if (!payload) return;
-            const { value: id, done } = gen.next();
-            if (done) return;
-            state.draft.id = id;
         },
         setIsDragging: (state, { payload }: PayloadAction<boolean>) => {
             state.isDragging = payload;
