@@ -3,6 +3,18 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { ShapeType } from '../toolBox/toolBoxSlice';
 
+function* IdGen() {
+    let prevId = localStorage.getItem('node-id');
+    while (true) {
+        let nextId = '';
+        do {
+            nextId = Date.now().toString() + Math.random().toString();
+        } while (nextId === prevId);
+        localStorage.setItem('node-id', nextId);
+        yield (prevId = nextId);
+    }
+}
+
 export type NodeProp = {
     id: string,
     x?: number,
@@ -29,26 +41,15 @@ export interface DrawBoardState {
     undoStack: createdNode[];
 }
 
+const gen = IdGen();
+
 const initialState: DrawBoardState = {
     nodes: [],
-    draft: { id: '0' },
+    draft: { id: gen.next().value ?? '0' },
     isDrawing: false,
     isDragging: false,
     undoStack: [],
 };
-
-function* IdGen() {
-    let prevId = '';
-    while (true) {
-        let nextId = '';
-        do {
-            nextId = Date.now().toString() + Math.random().toString();
-        } while (nextId === prevId);
-        yield (prevId = nextId);
-    }
-}
-
-const gen = IdGen();
 
 export const drawBoardSlice = createSlice({
     name: "drawBoard",
