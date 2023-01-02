@@ -85,7 +85,7 @@ Press `↷` button to redo the actions.
 ![after redo](/doc/img/redo-after.png)
 
 
-## How to run the project.
+## How to run this project.
 
 Fork or clone this repo.
 
@@ -93,6 +93,10 @@ At root directory, type below commands to install all dependencies.
 
 > npm install
 
-Now you can launch dev server.
+Then you can launch dev server.
 
 > npm run dev
+
+Now access the local address on your browser.
+
+![local dev server](/doc/img/launch-proj.png)
