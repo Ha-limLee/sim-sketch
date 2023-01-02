@@ -36,7 +36,7 @@ export const QuadCurve = ({ id, points, anchorPoint, stroke, strokeWidth, isDraw
 
     return (
         <>
-            <Shape stroke={stroke} strokeWidth={strokeWidth} sceneFunc={sceneFunc} onMouseEnter={() => console.log("enter") } />
+            <Shape stroke={stroke} strokeWidth={strokeWidth} sceneFunc={sceneFunc} />
             {anchorPoint && anchorPoint.length == 2 && isDrawing
                 ? <Circle x={anchorPoint[0]} y={anchorPoint[1]} radius={25} stroke="gray" strokeWidth={5} draggable={true} dragg dash={[10, 10]}
                     onMouseDown={anchorEvent.handleMouseDown} onDragMove={anchorEvent.handleDragMove} onDragEnd={anchorEvent.handleDragEnd} onMouseUp={anchorEvent.handleMouseUp} />
