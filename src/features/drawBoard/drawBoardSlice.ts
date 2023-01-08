@@ -25,7 +25,7 @@ export type NodeProp = {
     points?: number[],
     anchorPoint?: number[],
     strokeWidth?: number,
-    color?: string,
+    stroke?: string,
 };
 
 export type createdNode = {

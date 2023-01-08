@@ -8,6 +8,7 @@ import { QuadCurve } from '../quadCurve/QuadCurve';
 import { selectDrawBoard, setNodes, setDraft, setIsDrawing, setIsDragging, createdNode } from './drawBoardSlice';
 import type { NodeProp } from './drawBoardSlice';
 import { AnyAction, EmptyObject, ThunkDispatch } from '@reduxjs/toolkit';
+import R from 'ramda';
 
 type EventMapper = {
     [T in ShapeType]: {
@@ -119,20 +120,20 @@ const createEventMapper: CreateEventMapper = ( dispatch, draft, createDraft, isD
 type DraftProp = NodeProp & { handleClick?: (evt: KonvaEventObject<MouseEvent>) => void; handleAnchorDragEnd?: (anchor: number[]) => void; isDrawing?: boolean };
 
 const nodeBuilder: { [T in ShapeType]: (props: DraftProp) => JSX.Element | JSX.Element[] | undefined } = {
-    "line": ({ id, points, strokeWidth, color }) =>
-                <Line key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth}></Line>,
-    "curve": ({ id, points, anchorPoint, strokeWidth, color, isDrawing, handleAnchorDragEnd }) =>
-                <QuadCurve key={id} id={id} isDrawing={isDrawing} points={points ? [...points] : []} anchorPoint={anchorPoint ? [...anchorPoint] : []} stroke={color ?? "black"} strokeWidth={strokeWidth} onAnchorDragEnd={handleAnchorDragEnd} />,
-    "circle": ({ id, x, y, radius, strokeWidth, color }) =>
-                <Circle key={id} id={id} x={x} y={y} stroke={color} radius={radius} strokeWidth={strokeWidth} ></Circle>,
-    "rect": ({ id, x, y, width, height, strokeWidth, color }) =>
-                <Rect key={id} id={id} x={x} y={y} width={width} height={height} stroke={color} strokeWidth={strokeWidth} ></Rect>,
-    "poly": ({ id, x, y, points, strokeWidth, color, handleClick, isDrawing }) => {
+    "line": ({ id, points, strokeWidth, stroke }) =>
+                <Line key={id} id={id} points={points ? [...points] : []} stroke={stroke} strokeWidth={strokeWidth}></Line>,
+    "curve": ({ id, points, anchorPoint, strokeWidth, stroke, isDrawing, handleAnchorDragEnd }) =>
+                <QuadCurve key={id} id={id} isDrawing={isDrawing} points={points ? [...points] : []} anchorPoint={anchorPoint ? [...anchorPoint] : []} stroke={stroke ?? "black"} strokeWidth={strokeWidth} onAnchorDragEnd={handleAnchorDragEnd} />,
+    "circle": ({ id, x, y, radius, strokeWidth, stroke }) =>
+                <Circle key={id} id={id} x={x} y={y} stroke={stroke} radius={radius} strokeWidth={strokeWidth} ></Circle>,
+    "rect": ({ id, x, y, width, height, strokeWidth, stroke }) =>
+                <Rect key={id} id={id} x={x} y={y} width={width} height={height} stroke={stroke} strokeWidth={strokeWidth} ></Rect>,
+    "poly": ({ id, points, strokeWidth, stroke, handleClick, isDrawing }) => {
         if (!points) return;
         return (
             isDrawing
-                ? [<Line key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={1} />, <Circle key={id + 1} id={id + 1} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} />]
-                : <Line key={id} id={id} points={points ? [...points] : []} stroke={color} strokeWidth={strokeWidth} closed={true} />
+                ? [<Line key={id} id={id} points={points ? [...points] : []} stroke={stroke} strokeWidth={1} />, <Circle key={id + 1} id={id + 1} x={points[0]} y={points[1]} radius={10} stroke="black" onClick={handleClick} />]
+                : <Line key={id} id={id} points={points ? [...points] : []} stroke={stroke} strokeWidth={strokeWidth} closed={true} />
         );
     }
 };
