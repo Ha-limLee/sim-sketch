@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "client": "pnpm --filter sim-sketch-client"
+    "client": "pnpm --filter sim-sketch-client",
+    "server": "pnpm --filter sim-sketch-server"
   }
 }
