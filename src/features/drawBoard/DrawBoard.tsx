@@ -7,7 +7,7 @@ import type { ShapeType } from '../toolBox/toolBoxSlice';
 import { QuadCurve } from '../quadCurve/QuadCurve';
 import { selectDrawBoard, setNodes, setDraft, setIsDrawing, setIsDragging, createdNode } from './drawBoardSlice';
 import type { NodeProp } from './drawBoardSlice';
-import { AnyAction, EmptyObject, ThunkDispatch } from '@reduxjs/toolkit';
+import { AnyAction, ThunkDispatch } from '@reduxjs/toolkit';
 
 type EventMapper = {
     [T in ShapeType]: {
@@ -18,7 +18,7 @@ type EventMapper = {
 };
 
 type CreateEventMapper = (
-    dispatch: ThunkDispatch<EmptyObject, undefined, AnyAction>,
+    dispatch: ThunkDispatch<unknown, undefined, AnyAction>,
     draft: NodeProp,
     createDraft: () => { id: string; strokeWidth: number; color: string; },
     isDrawing: boolean,
@@ -139,7 +139,7 @@ const nodeBuilder: { [T in ShapeType]: (props: DraftProp) => JSX.Element | JSX.E
 
 type CreateDraftMapper = (
     draft: NodeProp,
-    dispatch: ThunkDispatch<EmptyObject, undefined, AnyAction>,
+    dispatch: ThunkDispatch<unknown, undefined, AnyAction>,
     nodes: createdNode[],
     selectedShape: ShapeType) => ({ [T in ShapeType]?: DraftProp });
 
