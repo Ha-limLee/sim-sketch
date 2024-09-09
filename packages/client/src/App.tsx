@@ -1,6 +1,5 @@
-import React from 'react';
-import { ToolBox } from './features/toolBox/ToolBox';
-import { DrawBoard } from './features/drawBoard/DrawBoard';
+import { ToolBox } from "./features/toolBox/ToolBox";
+import { DrawBoard } from "./features/drawBoard/DrawBoard";
 
 const App = () => {
   return (
