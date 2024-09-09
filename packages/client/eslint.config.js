@@ -9,6 +9,11 @@ export default [
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   eslintPluginPrettierRecommended,
+  {
+    rules: {
+      "prettier/prettier": ["error", { endOfLine: "auto" }],
+    },
+  },
   ...tseslint.configs.recommended,
   {
     files: ["**/*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}"],
