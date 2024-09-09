@@ -12,7 +12,7 @@ export default [
   ...tseslint.configs.recommended,
   {
     files: ["**/*.{js,mjs,cjs,jsx,mjsx,ts,tsx,mtsx}"],
-    ...reactPlugin.configs.flat.recommended,
+    ...reactPlugin.configs.flat["jsx-runtime"],
     settings: {
       react: { version: "detect" },
     },
