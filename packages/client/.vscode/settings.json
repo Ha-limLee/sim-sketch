@@ -1,4 +1,7 @@
 {
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
-  "editor.codeActionsOnSave": { "source.fixAll.eslint": "always" }
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }
