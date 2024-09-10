@@ -64,8 +64,11 @@ export const drawBoardSlice = createSlice({
     modifyProp: ({ nodes }, { payload }: PayloadAction<NodeProp>) => {
       const index = nodes.findIndex((x) => x.prop.id === payload.id);
       if (index !== -1) {
-        const { prop } = nodes[index];
-        nodes[index].prop = { ...prop, ...payload };
+        const node = nodes[index];
+        if (!node) return;
+
+        const { prop } = node;
+        node.prop = { ...prop, ...payload };
         return;
       }
     },
