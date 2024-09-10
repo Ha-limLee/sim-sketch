@@ -76,9 +76,8 @@ const createEventMapper: CreateEventMapper = (
       const points = draft.points;
       if (!isDrawing || !isDragging || !points || points.length < 2) return;
       const { offsetX, offsetY } = e.evt;
-      const anchorPoint = [points[0] + offsetX, points[1] + offsetY].map(
-        (x) => x / 2,
-      );
+      const [x = 0, y = 0] = points;
+      const anchorPoint = [x + offsetX, y + offsetY].map((v) => v / 2);
       dispatch(
         setDraft({
           ...draft,
@@ -108,11 +107,11 @@ const createEventMapper: CreateEventMapper = (
       const { points } = draft;
       if (!isDrawing || !points) return;
       const { offsetX, offsetY } = e.evt;
-      const center = [points[0] + offsetX, points[1] + offsetY].map(
-        (x) => x / 2,
-      );
-      const radius = [center[0] - offsetX, center[1] - offsetY]
-        .map((x) => Math.abs(x))
+      const [x = 0, y = 0] = points;
+      const center = [x + offsetX, y + offsetY].map((v) => v / 2);
+      const [centerX = 0, centerY = 0] = center;
+      const radius = [centerX - offsetX, centerY - offsetY]
+        .map((v) => Math.abs(v))
         .reduce((prev, curr) => Math.min(prev, curr));
       dispatch(setDraft({ ...draft, x: center[0], y: center[1], radius }));
     },

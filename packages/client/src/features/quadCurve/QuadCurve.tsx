@@ -24,11 +24,14 @@ export const QuadCurve = ({
   const [anchor, setAnchor] = React.useState<number[]>(anchorPoint ?? []);
 
   const sceneFunc = (ctx: Context, shape: ShapeType) => {
+    const [anchorX = 0, anchorY = 0] = anchor;
+    const [x0 = 0, y0 = 0, x1 = 0, y1 = 0] = points;
+
     ctx.beginPath();
-    ctx.moveTo(points[0], points[1]);
+    ctx.moveTo(x0, y0);
     if (anchorPoint && anchorPoint.length === 2)
-      ctx.quadraticCurveTo(anchor[0], anchor[1], points[2], points[3]);
-    ctx.lineTo(points[2], points[3]);
+      ctx.quadraticCurveTo(anchorX, anchorY, x1, y1);
+    ctx.lineTo(x1, y1);
     ctx.fillStrokeShape(shape);
   };
 
@@ -43,7 +46,7 @@ export const QuadCurve = ({
     },
     handleDragEnd(e: KonvaEventObject<DragEvent>) {
       e.cancelBubble = true;
-      onAnchorDragEnd ? onAnchorDragEnd(anchor) : null;
+      onAnchorDragEnd?.(anchor);
     },
     handleMouseUp(e: KonvaEventObject<MouseEvent>) {
       e.cancelBubble = true;
