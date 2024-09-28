@@ -15,9 +15,11 @@ import { customTheme } from "./features/theme/theme";
 import { PersistGate } from "redux-persist/integration/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ErrorPage from "./pages/error-page";
+import SignInPage from "./pages/sign-in-page";
 
 const router = createBrowserRouter([
   { path: "/", element: <App />, errorElement: <ErrorPage /> },
+  { path: "/sign-in", element: <SignInPage /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
