@@ -126,6 +126,12 @@ export default function SignUpPage() {
       email: data.get("email"),
       password: data.get("password"),
     });
+    fetch("http://localhost:3000/api/user/create/", {
+      body: data,
+      method: "POST",
+    }).catch(() => {
+      // TODO: handle error case
+    });
   };
 
   return (
