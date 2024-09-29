@@ -16,10 +16,12 @@ import { PersistGate } from "redux-persist/integration/react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ErrorPage from "./pages/error-page";
 import SignInPage from "./pages/sign-in-page";
+import SignUpPage from "./pages/sign-up-page";
 
 const router = createBrowserRouter([
   { path: "/", element: <App />, errorElement: <ErrorPage /> },
   { path: "/sign-in", element: <SignInPage /> },
+  { path: "/sign-up", element: <SignUpPage /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
