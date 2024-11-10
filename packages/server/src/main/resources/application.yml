@@ -1,3 +1,5 @@
+api-prefix: /api
+
 spring:
   application:
     name: simsketch

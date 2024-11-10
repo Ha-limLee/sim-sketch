@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "api-prefix",
+      "type": "java.lang.String",
+      "description": "An api prefix. You can use to this mapping request path.\n\ne.g.\n```java\n@RequestMapping(\"${api-prefix}/user\")\nclass Controller {}\n```"
+    }
+  ]
+}
