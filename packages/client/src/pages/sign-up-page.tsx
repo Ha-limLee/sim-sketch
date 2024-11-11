@@ -126,9 +126,11 @@ export default function SignUpPage() {
       email: data.get("email"),
       password: data.get("password"),
     });
-    fetch("http://localhost:3000/api/user/create/", {
-      body: data,
+    fetch("http://localhost:8080/api/user/signup", {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(data)),
       method: "POST",
+      mode: "cors",
     }).catch(() => {
       // TODO: handle error case
     });
