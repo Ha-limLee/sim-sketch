@@ -1,0 +1,14 @@
+api-prefix: /api
+
+spring:
+  application:
+    name: simsketch
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: true
+    database: postgresql
+    hibernate:
+      ddl-auto: update
+  config:
+    import: application-secret.yml
